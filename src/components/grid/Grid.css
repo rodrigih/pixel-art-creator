@@ -1,0 +1,17 @@
+.Grid {
+  width: 70vh;
+  height: 70vh;
+  min-width: 300px;
+  min-height: 300px;
+  max-width: 500px;
+  max-height: 500px;
+  margin: auto;
+  border: 4px solid black;
+
+  cursor: pointer;
+}
+
+.Grid-row {
+  display: flex;
+  height: 3.125%;
+}
