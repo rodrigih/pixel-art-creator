@@ -1,17 +1,70 @@
+.Grid-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Portrait Mobile */
+@media only screen and (max-width: 600px) {
+  .Grid {
+    max-width: 250px;
+    max-height: 250px;
+  }
+}
+
+/* Landscape Mobile */
+@media only screen and (min-width: 600px) {
+  .Grid {
+    max-width: 90vh;
+    max-height: 90vh;
+  }
+}
+
+/* Desktops, Tablets, and large phones */
+@media only screen and (min-width: 768px) {
+  .Grid {
+    min-width: 250px;
+    min-height: 250px;
+    max-width: 500px;
+    max-height: 500px;
+  }
+}
+
 .Grid {
+  cursor: pointer;
   width: 70vh;
   height: 70vh;
-  min-width: 300px;
-  min-height: 300px;
-  max-width: 500px;
-  max-height: 500px;
   margin: auto;
   border: 4px solid black;
 
-  cursor: pointer;
+  /* Turn off blue highlight from tap */
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
 }
 
 .Grid-row {
   display: flex;
   height: 3.125%;
+}
+
+.button-container {
+  display: flex;
+  margin: 1em 0;
+}
+
+.button-container button {
+  background-color: black;
+  color: white;
+  border: none;
+  font-family: VT323;
+  font-size: calc(1em + 1vw);
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.button-container button:hover {
+  font-size: calc(1.25em + 1vw);
+}
+
+.button-container button:active {
+  background-color: #333333;
 }

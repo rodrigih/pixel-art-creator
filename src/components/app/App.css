@@ -1,11 +1,10 @@
 .App {
   text-align: center;
-  min-height: 100%;
 }
 
 .App-title {
   font-family: VT323;
-  font-size: 40px;
+  font-size: calc(2em + 1vw);
 }
 
 .App-logo {

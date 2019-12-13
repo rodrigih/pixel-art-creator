@@ -18,23 +18,10 @@ class Grid extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props);
 
-    let createGrid = (dimension: number) => {
-      let grid = [];
-
-      for (let i = 0; i < dimension; i++) {
-        let row = [];
-        for (let j = 0; j < dimension; j++) {
-          row.push("");
-        }
-
-        grid.push(row);
-      }
-
-      return grid;
-    };
+    let newGrid = this.createGrid(32);
 
     this.state = {
-      grid: createGrid(32),
+      grid: newGrid,
       colour: "#000000",
       mouseDown: false
     };
@@ -51,7 +38,7 @@ class Grid extends React.Component<Props, State> {
     );
   }
 
-  throttledMouseEnter = (row: number, col: number, e: React.MouseEvent) => {
+  throttledMouseEnter = (row: number, col: number, e: React.SyntheticEvent) => {
     e.preventDefault();
     const { grid, colour } = this.state;
     this.setState({ grid: this.updateGrid(grid, row, col, colour) });
@@ -59,12 +46,13 @@ class Grid extends React.Component<Props, State> {
 
   /* Event Handlers */
 
-  handleMouseUp = (e: React.MouseEvent) => {
+  handleMouseUp = (e: React.SyntheticEvent) => {
     e.preventDefault();
+
     this.setState({ mouseDown: false });
   };
 
-  handleMouseDown = (row: number, col: number, e: React.MouseEvent) => {
+  handleMouseDown = (row: number, col: number, e: React.SyntheticEvent) => {
     e.preventDefault();
     const { grid, colour } = this.state;
 
@@ -74,11 +62,25 @@ class Grid extends React.Component<Props, State> {
     });
   };
 
-  handleMouseEnter = (row: number, col: number, e: React.MouseEvent) => {
+  handleMouseEnter = (row: number, col: number, e: React.SyntheticEvent) => {
     this.throttledMouseEnter(row, col, e);
   };
 
   /* Helper Functions */
+  createGrid = (dimension: number) => {
+    let grid = [];
+
+    for (let i = 0; i < dimension; i++) {
+      let row = [];
+      for (let j = 0; j < dimension; j++) {
+        row.push("");
+      }
+
+      grid.push(row);
+    }
+
+    return grid;
+  };
 
   updateGrid = (
     grid: Array<Array<string>>,
@@ -90,6 +92,10 @@ class Grid extends React.Component<Props, State> {
     newGrid[row][col] = colour;
 
     return newGrid;
+  };
+
+  clearGrid = () => {
+    this.setState({ grid: this.createGrid(32) });
   };
 
   displayGrid = () => {
@@ -114,6 +120,13 @@ class Grid extends React.Component<Props, State> {
             }
             onMouseDown={e => this.handleMouseDown(rowInd, cellInd, e)}
             onMouseUp={this.handleMouseUp}
+            onTouchMove={
+              mouseDown
+                ? e => this.handleMouseEnter(rowInd, cellInd, e)
+                : e => null
+            }
+            onTouchStart={e => this.handleMouseDown(rowInd, cellInd, e)}
+            onTouchEnd={this.handleMouseUp}
           ></div>
         );
       });
@@ -127,7 +140,14 @@ class Grid extends React.Component<Props, State> {
   };
 
   render() {
-    return <div className="Grid">{this.displayGrid()}</div>;
+    return (
+      <div className="Grid-container">
+        <div className="Grid">{this.displayGrid()}</div>
+        <div className="button-container">
+          <button onClick={this.clearGrid}>Clear</button>
+        </div>
+      </div>
+    );
   }
 }
 
