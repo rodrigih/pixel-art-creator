@@ -64,6 +64,7 @@ class Grid extends React.Component<Props, State> {
     this.handleMouseUp = this.handleMouseUp.bind(this);
     this.handleMouseDown = this.handleMouseDown.bind(this);
     this.handleMouseEnter = this.handleMouseEnter.bind(this);
+    this.handleMouseLeave = this.handleMouseLeave.bind(this);
 
     // Bind Throttle handlers
     this.throttledMouseEnter = _.throttle(
@@ -159,6 +160,10 @@ class Grid extends React.Component<Props, State> {
 
   handleMouseEnter = (row: number, col: number, e: React.SyntheticEvent) => {
     this.throttledMouseEnter(row, col, e);
+  };
+
+  handleMouseLeave = (e: React.SyntheticEvent) => {
+    this.setState({ mouseDown: false });
   };
 
   /* Helper Functions */
@@ -285,15 +290,6 @@ class Grid extends React.Component<Props, State> {
       newGrid = prevAction.prevGrid;
     }
 
-    /*
-    prevAction.forEach(action => {
-      let { row, col, colour } = action;
-      if (row !== undefined && col !== undefined) {
-        newGrid[row][col] = colour ? colour : "";
-      }
-    });
-       */
-
     this.setState({
       grid: newGrid,
       history: currHistory
@@ -303,7 +299,9 @@ class Grid extends React.Component<Props, State> {
   render() {
     return (
       <div className="Grid-container">
-        <div className="Grid">{this.displayGrid()}</div>
+        <div className="Grid" onMouseLeave={this.handleMouseLeave}>
+          {this.displayGrid()}
+        </div>
         <div className="button-container">
           <button onClick={this.clearGrid}>Clear</button>
           <button onClick={this.undo}>Undo</button>
