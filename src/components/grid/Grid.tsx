@@ -4,15 +4,48 @@ import React from "react";
 import { COLOURS } from "../../constants/colours.js";
 import "./Grid.css";
 
+interface Action {
+  actionType: string;
+}
+
+interface ClearAction extends Action {
+  prevGrid: Array<Array<string>>;
+}
+
+interface CellInfo {
+  row: number;
+  col: number;
+  colour: string;
+}
+
+interface ColourAction extends Action {
+  // Contains differences of previousGrid only
+  prevCells: Array<CellInfo>;
+}
+
 interface Props {}
 
 interface State {
   grid: Array<Array<string>>;
+  history: Array<ColourAction | ClearAction>;
   mouseDown: boolean;
   colour: string;
 }
 
 const THROTTLE_TIME = 10; // Time in milliseconds for "mouseEnter" throttle
+
+/* Type Guards */
+function isColourAction(
+  action: ClearAction | ColourAction
+): action is ColourAction {
+  return (action as ColourAction).actionType === "colour";
+}
+
+function isClearAction(
+  action: ClearAction | ColourAction
+): action is ClearAction {
+  return (action as ClearAction).actionType === "clear";
+}
 
 class Grid extends React.Component<Props, State> {
   constructor(props: Props) {
@@ -22,6 +55,7 @@ class Grid extends React.Component<Props, State> {
 
     this.state = {
       grid: newGrid,
+      history: [],
       colour: "#000000",
       mouseDown: false
     };
@@ -39,26 +73,87 @@ class Grid extends React.Component<Props, State> {
   }
 
   throttledMouseEnter = (row: number, col: number, e: React.SyntheticEvent) => {
-    e.preventDefault();
-    const { grid, colour } = this.state;
-    this.setState({ grid: this.updateGrid(grid, row, col, colour) });
+    const { grid, colour, history } = this.state;
+
+    let currColour = grid[row][col];
+
+    /* Don't do anything if nothing happens
+     * should never happen as mouseEnter only
+     * executes after mouseDown, which adds to history
+     * */
+    if (!history || history.length === 0) {
+      return;
+    }
+
+    /* Don't update if no changes were made */
+    if (currColour === colour) {
+      return;
+    }
+
+    let newHistory = history.slice();
+    const lastAction = newHistory[newHistory.length - 1];
+    let currCellInfo = {
+      row: row,
+      col: col,
+      colour: currColour
+    };
+
+    // If last Action was ColourAction, add to prevCells
+    if (lastAction && isColourAction(lastAction)) {
+      lastAction.prevCells.push(currCellInfo);
+    } else {
+      let currAction: ColourAction = {
+        actionType: "colour",
+        prevCells: [currCellInfo]
+      };
+
+      newHistory.push(currAction as ColourAction);
+    }
+
+    let newGrid = this.updateGrid(grid, row, col, colour);
+
+    this.setState({
+      grid: newGrid,
+      history: newHistory
+    });
   };
 
   /* Event Handlers */
 
   handleMouseUp = (e: React.SyntheticEvent) => {
     e.preventDefault();
-
     this.setState({ mouseDown: false });
   };
 
   handleMouseDown = (row: number, col: number, e: React.SyntheticEvent) => {
     e.preventDefault();
-    const { grid, colour } = this.state;
+    const { grid, colour, history } = this.state;
+
+    let currColour = grid[row][col];
+
+    /* Don't update if no changes were made */
+    if (currColour === colour) {
+      return;
+    }
+
+    let newHistory = history.slice();
+    let currCellInfo = {
+      row: row,
+      col: col,
+      colour: currColour
+    };
+
+    newHistory.push({
+      actionType: "colour",
+      prevCells: [currCellInfo]
+    });
+
+    let newGrid = this.updateGrid(grid, row, col, colour);
 
     this.setState({
       mouseDown: true,
-      grid: this.updateGrid(grid, row, col, colour)
+      history: newHistory,
+      grid: newGrid
     });
   };
 
@@ -95,7 +190,28 @@ class Grid extends React.Component<Props, State> {
   };
 
   clearGrid = () => {
-    this.setState({ grid: this.createGrid(32) });
+    const { grid, history } = this.state;
+
+    let emptyGrid = this.createGrid(32);
+
+    let newState: any = { grid: emptyGrid };
+
+    if (history.length) {
+      const prevAction = history[history.length - 1];
+
+      if (!isClearAction(prevAction)) {
+        let newHistory = history.slice();
+
+        newHistory.push({
+          actionType: "clear",
+          prevGrid: grid.slice().map(c => c.slice())
+        });
+
+        newState["history"] = newHistory;
+      }
+    }
+
+    this.setState(newState);
   };
 
   displayGrid = () => {
@@ -119,7 +235,7 @@ class Grid extends React.Component<Props, State> {
                 : e => null
             }
             onMouseDown={e => this.handleMouseDown(rowInd, cellInd, e)}
-            onMouseUp={this.handleMouseUp}
+            onMouseUp={e => this.handleMouseUp(e)}
             onTouchMove={
               mouseDown
                 ? e => this.handleMouseEnter(rowInd, cellInd, e)
@@ -139,12 +255,58 @@ class Grid extends React.Component<Props, State> {
     });
   };
 
+  undo = () => {
+    const { grid, history } = this.state;
+
+    /* Do nothing if history is empty */
+    if (!history || history.length < 1) {
+      return;
+    }
+
+    let currHistory = history.slice();
+    let prevAction = currHistory.pop();
+
+    /* Do nothing if prevAction falsy */
+    if (!prevAction) {
+      return;
+    }
+
+    let newGrid: Array<Array<string>>;
+
+    if (isColourAction(prevAction)) {
+      newGrid = grid.slice().map(c => c.slice());
+      prevAction.prevCells.forEach(action => {
+        let { row, col, colour } = action;
+        if (row !== undefined && col !== undefined) {
+          newGrid[row][col] = colour ? colour : "";
+        }
+      });
+    } else {
+      newGrid = prevAction.prevGrid;
+    }
+
+    /*
+    prevAction.forEach(action => {
+      let { row, col, colour } = action;
+      if (row !== undefined && col !== undefined) {
+        newGrid[row][col] = colour ? colour : "";
+      }
+    });
+       */
+
+    this.setState({
+      grid: newGrid,
+      history: currHistory
+    });
+  };
+
   render() {
     return (
       <div className="Grid-container">
         <div className="Grid">{this.displayGrid()}</div>
         <div className="button-container">
           <button onClick={this.clearGrid}>Clear</button>
+          <button onClick={this.undo}>Undo</button>
         </div>
       </div>
     );
