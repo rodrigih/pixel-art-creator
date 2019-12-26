@@ -132,8 +132,9 @@ class Grid extends React.Component<Props, State> {
 
     let currColour = grid[row][col];
 
-    /* Don't update if no changes were made */
+    /* Don't update grid if no changes were made */
     if (currColour === colour) {
+      this.setState({ mouseDown: true });
       return;
     }
 
