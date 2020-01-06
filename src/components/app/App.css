@@ -1,3 +1,7 @@
+:root {
+  --cell-border-colour: #b5b5b5;
+  --palette-border-colour: #484848;
+}
 .App {
   text-align: center;
 }

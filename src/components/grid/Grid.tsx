@@ -1,8 +1,11 @@
 import _ from "lodash";
 import React from "react";
 
-import { COLOURS } from "../../constants/colours.js";
 import "./Grid.css";
+
+import ColourPalette from "../colourPalette/colourPalette";
+
+import { MONOCHROME_PALETTE } from "../../constants/colours";
 
 interface Action {
   actionType: string;
@@ -29,7 +32,8 @@ interface State {
   grid: Array<Array<string>>;
   history: Array<ColourAction | ClearAction>;
   mouseDown: boolean;
-  colour: string;
+  activeColour: number;
+  colourPalette: Array<string>;
 }
 
 const THROTTLE_TIME = 10; // Time in milliseconds for "mouseEnter" throttle
@@ -56,8 +60,9 @@ class Grid extends React.Component<Props, State> {
     this.state = {
       grid: newGrid,
       history: [],
-      colour: "#000000",
-      mouseDown: false
+      mouseDown: false,
+      activeColour: 14,
+      colourPalette: MONOCHROME_PALETTE.slice()
     };
 
     // Bind Handlers
@@ -65,6 +70,7 @@ class Grid extends React.Component<Props, State> {
     this.handleMouseDown = this.handleMouseDown.bind(this);
     this.handleMouseEnter = this.handleMouseEnter.bind(this);
     this.handleMouseLeave = this.handleMouseLeave.bind(this);
+    this.handleColourButtonClick = this.handleColourButtonClick.bind(this);
 
     // Bind Throttle handlers
     this.throttledMouseEnter = _.throttle(
@@ -74,7 +80,9 @@ class Grid extends React.Component<Props, State> {
   }
 
   throttledMouseEnter = (row: number, col: number, e: React.SyntheticEvent) => {
-    const { grid, colour, history } = this.state;
+    const { grid, activeColour, colourPalette, history } = this.state;
+
+    let colour = colourPalette[activeColour];
 
     let currColour = grid[row][col];
 
@@ -128,7 +136,9 @@ class Grid extends React.Component<Props, State> {
 
   handleMouseDown = (row: number, col: number, e: React.SyntheticEvent) => {
     e.preventDefault();
-    const { grid, colour, history } = this.state;
+    const { grid, activeColour, colourPalette, history } = this.state;
+
+    const colour = colourPalette[activeColour];
 
     let currColour = grid[row][col];
 
@@ -165,6 +175,10 @@ class Grid extends React.Component<Props, State> {
 
   handleMouseLeave = (e: React.SyntheticEvent) => {
     this.setState({ mouseDown: false });
+  };
+
+  handleColourButtonClick = (ind: number) => {
+    this.setState({ activeColour: ind });
   };
 
   /* Helper Functions */
@@ -227,7 +241,6 @@ class Grid extends React.Component<Props, State> {
       let cellArr = row.map((colour, cellInd) => {
         let key = `${rowInd}${cellInd}`;
         let styleObj = {
-          border: `thin solid ${COLOURS.cellBorder}`,
           width: "3.125%",
           backgroundColor: colour ? colour : "initial"
         };
@@ -272,7 +285,7 @@ class Grid extends React.Component<Props, State> {
     let currHistory = history.slice();
     let prevAction = currHistory.pop();
 
-    /* Do nothing if prevAction falsy */
+    /* Do nothing if prevAction is falsy */
     if (!prevAction) {
       return;
     }
@@ -298,14 +311,31 @@ class Grid extends React.Component<Props, State> {
   };
 
   render() {
+    const { activeColour, colourPalette } = this.state;
+
     return (
       <div className="Grid-container">
         <div className="Grid" onMouseLeave={this.handleMouseLeave}>
           {this.displayGrid()}
         </div>
-        <div className="button-container">
-          <button onClick={this.clearGrid}>Clear</button>
-          <button onClick={this.undo}>Undo</button>
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center"
+          }}
+        >
+          <ColourPalette
+            colourArr={colourPalette}
+            activeColour={activeColour}
+            handleButtonClick={this.handleColourButtonClick}
+          />
+
+          <div className="button-container">
+            <button onClick={this.clearGrid}>Clear</button>
+            <button onClick={this.undo}>Undo</button>
+          </div>
         </div>
       </div>
     );
