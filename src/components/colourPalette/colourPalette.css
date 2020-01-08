@@ -4,6 +4,27 @@
   transition: all 0.25s;
 }
 
+#colour-changer {
+  border: thin;
+  background: none;
+  height: 40px;
+}
+
+.palette {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.colour-changer-container {
+  display: flex;
+  align-items: center;
+}
+
+.colour-changer-container label {
+  font-size: calc(14px + 1vw);
+}
+
 .colour-palette {
   display: flex;
   flex-direction: column;

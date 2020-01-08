@@ -5,9 +5,12 @@ interface ColourPaletteProps {
   colourArr: Array<string>;
   activeColour: number;
   handleButtonClick: (ind: number) => void;
+  handleColourChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const ColourPalette = (props: ColourPaletteProps) => {
+  const { colourArr, activeColour } = props;
+
   const paletteRows = props.colourArr.reduce(
     (acc: Array<Array<string>>, curr: string, ind) => {
       if (ind % 3) {
@@ -44,9 +47,23 @@ const ColourPalette = (props: ColourPaletteProps) => {
     });
   };
 
+  const currColour = colourArr[activeColour];
+
   return (
-    <div>
+    <div className="palette">
       <div className="colour-palette">{displayPalette(paletteRows)}</div>
+
+      <div className="colour-changer-container">
+        <label htmlFor="colour-changer"> Click to change colour: </label>
+
+        <input
+          type="color"
+          name="current-colour"
+          id="colour-changer"
+          value={currColour}
+          onChange={props.handleColourChange}
+        />
+      </div>
     </div>
   );
 };

@@ -37,6 +37,7 @@ interface State {
 }
 
 const THROTTLE_TIME = 10; // Time in milliseconds for "mouseEnter" throttle
+const DEBOUNCE_TIME = 10; // Time in milliseconds for "onColourChange" debounce
 
 /* Type Guards */
 function isColourAction(
@@ -71,6 +72,13 @@ class Grid extends React.Component<Props, State> {
     this.handleMouseEnter = this.handleMouseEnter.bind(this);
     this.handleMouseLeave = this.handleMouseLeave.bind(this);
     this.handleColourButtonClick = this.handleColourButtonClick.bind(this);
+
+    this.handleColourChange = this.handleColourChange.bind(this);
+
+    this.debounceHandleColourChange = _.debounce(
+      this.debounceHandleColourChange.bind(this),
+      DEBOUNCE_TIME
+    );
 
     // Bind Throttle handlers
     this.throttledMouseEnter = _.throttle(
@@ -179,6 +187,21 @@ class Grid extends React.Component<Props, State> {
 
   handleColourButtonClick = (ind: number) => {
     this.setState({ activeColour: ind });
+  };
+
+  debounceHandleColourChange = (colour: string) => {
+    const { activeColour, colourPalette } = this.state;
+
+    let newColourPalette = colourPalette.slice();
+
+    newColourPalette[activeColour] = colour;
+
+    this.setState({ colourPalette: newColourPalette });
+  };
+
+  handleColourChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    this.debounceHandleColourChange(e.target.value);
   };
 
   /* Helper Functions */
@@ -330,6 +353,7 @@ class Grid extends React.Component<Props, State> {
             colourArr={colourPalette}
             activeColour={activeColour}
             handleButtonClick={this.handleColourButtonClick}
+            handleColourChange={this.handleColourChange}
           />
 
           <div className="button-container">
