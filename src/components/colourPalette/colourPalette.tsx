@@ -1,6 +1,8 @@
 import React from "react";
 import "./colourPalette.css";
 
+import "../../assets/pencilcursor.svg";
+
 interface ColourPaletteProps {
   colourArr: Array<string>;
   activeColour: number;
@@ -51,6 +53,7 @@ const ColourPalette = (props: ColourPaletteProps) => {
 
   return (
     <div className="palette">
+      <h1>Colour Palette</h1>
       <div className="colour-palette">{displayPalette(paletteRows)}</div>
 
       <div className="colour-changer-container">
